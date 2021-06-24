@@ -8,18 +8,23 @@ import {
 
 import { AppLogger } from '../app.logger'
 
+import { ChallengeService } from './challenge.service'
+
 @Controller('challenge')
 export class ChallengeController {
-  constructor(private readonly logger: AppLogger) {
+  constructor(
+    private readonly logger: AppLogger,
+    private readonly challengeService: ChallengeService
+  ) {
     this.logger.setContext('challengeController')
   }
 
-  @Get(':origem')
-  public async findAll(@Param('origem') origem: string): Promise<boolean> {
+  @Get(':origin')
+  public async filterByOrigin(
+    @Param('origin') origin: string
+  ): Promise<object> {
     try {
-      if (origem) {
-        return true
-      }
+      return this.challengeService.filterByOrigin(origin)
     } catch (err) {
       this.logger.error(err)
       throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR)
