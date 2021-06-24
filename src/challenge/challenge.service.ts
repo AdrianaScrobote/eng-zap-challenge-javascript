@@ -18,7 +18,7 @@ export class ChallengeService {
     if (origin === 'zap') {
       result = await this.filterByZap()
     } else {
-      result = this.filterByVivaReal()
+      result = await this.filterByVivaReal()
     }
 
     return result
@@ -58,16 +58,43 @@ export class ChallengeService {
           return item
         }
       })
-    ).then((result) => {
-      result = <any>result.filter((item) => item)
-      return result
+    ).then((values) => {
+      return values.filter((item) => item)
     })
 
     return result
   }
 
   public async filterByVivaReal(): Promise<object> {
-    const result = []
+    const maxRentalPrice = 4000
+    const maxRentalPriceBoudingBox = await this.getMaxRentalPriceByBoudingBox(
+      maxRentalPrice
+    )
+
+    const result = await Promise.all(
+      ZapService.dataSource.map(async (item) => {
+        if (
+          item.pricingInfos.businessType === 'SALE' &&
+          item.pricingInfos.price <= 700000
+        ) {
+          return item
+        } else if (item.pricingInfos.businessType === 'RENTAL') {
+          const valueMaxRentalPrice = await this.getMaxRentalPriceVivaReal(
+            item.address.geoLocation.location.lon,
+            item.address.geoLocation.location.lat,
+            maxRentalPrice,
+            maxRentalPriceBoudingBox
+          )
+
+          if (item.pricingInfos.rentalTotalPrice <= valueMaxRentalPrice) {
+            return item
+          }
+        }
+      })
+    ).then((values) => {
+      return values.filter((item) => item)
+    })
+
     return result
   }
 
@@ -91,6 +118,19 @@ export class ChallengeService {
       differencePrice = (priceItem * 10) / 100
       differencePrice = Math.round(differencePrice * 100) / 100
       priceItem = priceItem - differencePrice
+    }
+
+    return priceItem
+  }
+
+  public async getMaxRentalPriceByBoudingBox(
+    priceItem: number
+  ): Promise<number> {
+    let differencePrice
+    if (priceItem) {
+      differencePrice = (priceItem * 50) / 100
+      differencePrice = Math.round(differencePrice * 100) / 100
+      priceItem = priceItem + differencePrice
     }
 
     return priceItem
@@ -126,5 +166,22 @@ export class ChallengeService {
       valueMinSalePrice = minSalePrice
     }
     return valueMinSalePrice
+  }
+
+  public async getMaxRentalPriceVivaReal(
+    lon: number,
+    lat: number,
+    maxRentalPrice: number,
+    maxRentalBoudingBox: number
+  ): Promise<number> {
+    let valueMaxRentalPrice
+    const isBoundingBox = await this.isBoudingBox(lon, lat)
+
+    if (isBoundingBox) {
+      valueMaxRentalPrice = maxRentalBoudingBox
+    } else {
+      valueMaxRentalPrice = maxRentalPrice
+    }
+    return valueMaxRentalPrice
   }
 }
