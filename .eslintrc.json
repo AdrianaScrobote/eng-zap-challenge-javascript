@@ -17,6 +17,7 @@
         "@typescript-eslint"
     ],
     "rules": {
+        "dot-notation": 0
     }
 
 }

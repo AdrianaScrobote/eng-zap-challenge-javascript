@@ -2,15 +2,35 @@ import { UnauthorizedException } from '@nestjs/common'
 import { AppLogger } from '../app.logger'
 import { ZapService } from '../services/zap/zap.service'
 import { BoudingBoxEnum } from './enum/boudingBox'
+import { pagination } from '../services/helpers/pagination'
 
 export class ChallengeService {
   /* eslint-disable no-useless-constructor */
   constructor(private readonly logger: AppLogger) {}
 
-  public async filterByOrigin(origin: string): Promise<object> {
+  public async filterByOrigin(
+    origin: string,
+    queryOpts: object
+  ): Promise<object> {
     if (origin !== 'zap' && origin !== 'vivareal') {
       throw new UnauthorizedException(
         'Por favor, informe uma origem válida! Deve ser zap ou vivareal.'
+      )
+    }
+
+    if (!queryOpts['pageNumber'] || queryOpts['pageNumber'] < 1) {
+      queryOpts['pageNumber'] = 1
+    } else if (!/^\d*$/.test(queryOpts['pageNumber'])) {
+      throw new UnauthorizedException(
+        'O parâmetro pageNumber deve ser um número!'
+      )
+    }
+
+    if (!queryOpts['pageSize'] || queryOpts['pageSize'] < 1) {
+      queryOpts['pageSize'] = 100
+    } else if (!/^\d*$/.test(queryOpts['pageSize'])) {
+      throw new UnauthorizedException(
+        'O parâmetro pageSize deve ser um número!'
       )
     }
 
@@ -21,7 +41,17 @@ export class ChallengeService {
       result = await this.filterByVivaReal()
     }
 
-    return result
+    const totalItems = result.length
+    const end = queryOpts['pageNumber'] * queryOpts['pageSize']
+    const start = end - queryOpts['pageSize']
+    result = result.slice(start, end)
+
+    return pagination(
+      result,
+      totalItems,
+      parseInt(queryOpts['pageSize']),
+      parseInt(queryOpts['pageNumber'])
+    )
   }
 
   public async filterByZap(): Promise<object> {

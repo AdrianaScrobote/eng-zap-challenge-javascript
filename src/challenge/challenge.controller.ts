@@ -3,7 +3,8 @@ import {
   HttpException,
   HttpStatus,
   Get,
-  Param
+  Param,
+  Query
 } from '@nestjs/common'
 
 import { AppLogger } from '../app.logger'
@@ -21,10 +22,11 @@ export class ChallengeController {
 
   @Get(':origin')
   public async filterByOrigin(
-    @Param('origin') origin: string
+    @Param('origin') origin: string,
+    @Query() queryOpts: object
   ): Promise<object> {
     try {
-      return this.challengeService.filterByOrigin(origin)
+      return this.challengeService.filterByOrigin(origin, queryOpts)
     } catch (err) {
       this.logger.error(err)
       throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR)
