@@ -63,7 +63,7 @@ export class ChallengeService {
     const result = await Promise.all(
       ZapService.dataSource.map(async (item) => {
         if (item.pricingInfos.businessType === 'SALE') {
-          const valueMinSalePrice = await this.getMinSalePriceZap(
+          const valueMinSalePrice = await this.getValueByBoundingBox(
             item.address.geoLocation.location.lon,
             item.address.geoLocation.location.lat,
             minSalePrice,
@@ -109,7 +109,7 @@ export class ChallengeService {
         ) {
           return item
         } else if (item.pricingInfos.businessType === 'RENTAL') {
-          const valueMaxRentalPrice = await this.getMaxRentalPriceVivaReal(
+          const valueMaxRentalPrice = await this.getValueByBoundingBox(
             item.address.geoLocation.location.lon,
             item.address.geoLocation.location.lat,
             maxRentalPrice,
@@ -117,7 +117,14 @@ export class ChallengeService {
           )
 
           if (item.pricingInfos.rentalTotalPrice <= valueMaxRentalPrice) {
-            return item
+            const validCondominium = await this.isValidValueCondominium(
+              item.pricingInfos.rentalTotalPrice,
+              item.pricingInfos.monthlyCondoFee
+            )
+
+            if (validCondominium) {
+              return item
+            }
           }
         }
       })
@@ -181,37 +188,36 @@ export class ChallengeService {
     return isBoundingBox
   }
 
-  public async getMinSalePriceZap(
+  public async getValueByBoundingBox(
     lon: number,
     lat: number,
-    minSalePrice: number,
-    minSalePriceBoudingBox: number
+    value: number,
+    valueBoudingBox: number
   ): Promise<number> {
-    let valueMinSalePrice
+    let result
     const isBoundingBox = await this.isBoudingBox(lon, lat)
 
     if (isBoundingBox) {
-      valueMinSalePrice = minSalePriceBoudingBox
+      result = valueBoudingBox
     } else {
-      valueMinSalePrice = minSalePrice
+      result = value
     }
-    return valueMinSalePrice
+    return result
   }
 
-  public async getMaxRentalPriceVivaReal(
-    lon: number,
-    lat: number,
-    maxRentalPrice: number,
-    maxRentalBoudingBox: number
-  ): Promise<number> {
-    let valueMaxRentalPrice
-    const isBoundingBox = await this.isBoudingBox(lon, lat)
+  public async isValidValueCondominium(
+    rentalTotalPrice: number,
+    monthlyCondoFee: any
+  ): Promise<boolean> {
+    let result = false
 
-    if (isBoundingBox) {
-      valueMaxRentalPrice = maxRentalBoudingBox
-    } else {
-      valueMaxRentalPrice = maxRentalPrice
+    if (monthlyCondoFee && !isNaN(monthlyCondoFee)) {
+      const percentage = (monthlyCondoFee * 100) / rentalTotalPrice
+
+      if (percentage < 30) {
+        result = true
+      }
     }
-    return valueMaxRentalPrice
+    return result
   }
 }
