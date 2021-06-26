@@ -117,12 +117,12 @@ export class ChallengeService {
           )
 
           if (item.pricingInfos.rentalTotalPrice <= valueMaxRentalPrice) {
-            const validCondominium = await this.isValidValueCondominium(
+            const isValidValueCondominium = await this.isValidValueCondominium(
               item.pricingInfos.rentalTotalPrice,
               item.pricingInfos.monthlyCondoFee
             )
 
-            if (validCondominium) {
+            if (isValidValueCondominium) {
               return item
             }
           }
