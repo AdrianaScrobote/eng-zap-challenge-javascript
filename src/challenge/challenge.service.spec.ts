@@ -22,7 +22,7 @@ describe('ChallengeService', () => {
 
   describe('filterByOrigin', () => {
     it('should get one item Zap', async () => {
-      jest.setTimeout(60000)
+      jest.setTimeout(150000)
 
       await ZapService.getSource()
       ZapService.removeInegibleItems()
@@ -82,7 +82,7 @@ describe('ChallengeService', () => {
     })
 
     it('should get one item Viva Real', async () => {
-      jest.setTimeout(60000)
+      jest.setTimeout(150000)
 
       await ZapService.getSource()
       ZapService.removeInegibleItems()
