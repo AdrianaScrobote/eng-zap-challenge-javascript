@@ -10,7 +10,7 @@ async function bootstrap() {
   console.log('Os dados de source foram carregados com sucesso')
   ZapService.removeInegibleItems()
 
-  await app.listen(3000)
+  await app.listen(process.env.PORT || 3000)
 }
 
 bootstrap()
