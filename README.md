@@ -1,7 +1,6 @@
 # eng-zap-challenge-javascript
 
-Desafio realizado para o cargo de desenvolvedora backend no Grupo Zap.
-Foi criada uma API backend, onde dada uma origem, retorna dados elegíveis para o Grupo ZAP ou Viva Real.
+Projeto de uma API backend, onde dada uma origem, retorna dados elegíveis para o Grupo ZAP ou Viva Real.
 
 ### Como rodar localmente?
 
